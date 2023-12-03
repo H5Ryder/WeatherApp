@@ -2,14 +2,16 @@
 let searchCity = "London";
 let apiKey_weather = "feb541b0203f47c1b4b192748230212";
 let cityObject = {};
-// Call the getWeather function with searchCity and apiKey_weather
-let loadData = getWeather(searchCity, apiKey_weather);
-loadData
-  .then((city) => {
-    let sentence = convertWeatherToSentence(city);
-    textTypingEffect(document.querySelector(".update"), sentence);
-  })
-  .catch((error) => {});
+
+//Get the mouse position
+document.documentElement.style.setProperty('--mouse-x', "50%" );
+document.documentElement.style.setProperty('--mouse-y', "50%" );
+
+ let loadData = getWeather(searchCity, apiKey_weather);
+ loadData.then((city) => {
+     let sentence = convertWeatherToSentence(city);
+     typingEffect(city);
+   }).catch((error) => {});
 
 
 // Get the form and input element
@@ -34,15 +36,9 @@ form.addEventListener("submit", (event) => {
     .then((cityObject) => {
       console.log(`Success ${cityObject.country}`);
 
-      let updateText = document.querySelector(".update");
-        updateText.textContent = "";
-
+    
       let sentence = convertWeatherToSentence(cityObject);
-
-      textTypingEffect(updateText, sentence).then(() => {
-        input.disabled = false;
-        console.log("done");
-      });
+      typingEffect(cityObject).then(() => input.disabled = false);
     })
     .catch((error) => {
       console.error(`Error: ${error}`);
@@ -94,8 +90,6 @@ function convertWeatherToSentence(cityObject) {
   return weatherSentence;
 }
 
-
-
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -111,3 +105,89 @@ async function textTypingEffect(element, text) {
       await delay(20);
     }
   }
+
+
+  document.addEventListener('mousemove', function(event) {
+
+
+    const winWidth = window.innerWidth;
+    const winHeight = window.innerHeight;
+
+    const mouseX = Math.round((event.pageX/winWidth)*100);
+    const mouseY = Math.round((event.pageY/winHeight)*100);
+
+    document.documentElement.style.setProperty('--mouse-x', mouseX.toString()+"%" );
+    document.documentElement.style.setProperty('--mouse-y', mouseY.toString()+"%" );
+
+
+
+
+});
+
+
+
+async function typingEffect(cityObject) {
+
+  
+  //Create array of all span elements in the sequential order
+  let textArray = callSpanText();
+
+  //Clear the previous text
+  removeText(textArray);
+
+  //Array of text to be inputted into the span elements
+  let textContent = createContent(cityObject);
+
+ 
+
+  // Assuming textTypingEffect returns a Promise
+  typeAllTexts(textArray, textContent);
+
+}
+
+
+async function typeAllTexts(textArray, textContent) {
+  for (let i = 0; i < textArray.length; i++) {
+      await textTypingEffect(textArray[i], textContent[i]);
+  }
+}
+
+
+function callSpanText() {
+  const rowOne = document.querySelector('.row.one');
+  const rowOneElements = Array.from(rowOne.children);
+
+  const rowTwo = document.querySelector('.row.two');
+  const rowTwoElements = Array.from(rowTwo.children);
+
+  const combinedArray = [...rowOneElements, ...rowTwoElements];
+  return combinedArray;
+}
+
+function removeText(combinedArray) {
+  combinedArray.forEach(element => {
+    element.textContent = "";
+  });
+}
+
+function createContent(cityObject) {
+  let txtOutput = new Array(13);
+
+  txtOutput[0] = "The weather in ";
+  txtOutput[1] = `${cityObject.city}, ${cityObject.country} `;
+  txtOutput[2] = "is ";
+  txtOutput[3] = `${cityObject.condition} `;
+  txtOutput[4] = "with a temperature of ";
+  txtOutput[5] = `${cityObject.temperature} `;
+  txtOutput[6] = "\u2103 ";
+  txtOutput[7] = ",";
+  txtOutput[8] = "wind speed of ";
+  txtOutput[9] = cityObject.wind + "mph ";
+  txtOutput[10] = ", and";
+  txtOutput[11] = `${cityObject.humidity}% `;
+  txtOutput[12] = "humidity. ";
+
+  return txtOutput;
+}
+
+
